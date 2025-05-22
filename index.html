@@ -1,19 +1,41 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Xenium Signatur Generator</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
-    label { display: block; margin-top: 1em; font-weight: bold; }
-    input, select, textarea { width: 100%; padding: 0.5em; margin-top: 0.3em; }
-    .preview { margin-top: 2em; padding: 1em; border: 1px solid #ccc; background: #fafafa; }
-    .button { margin-top: 1em; padding: 0.7em 1em; font-weight: bold; cursor: pointer; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input, select, textarea {
+      padding: 5px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #7B6AF4;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Xenium Signatur Generator</h1>
-
   <label>Name</label>
   <input type="text" id="name" value="Max Musterfrau">
 
@@ -26,9 +48,8 @@
   <label>Mobilnummer</label>
   <input type="text" id="mobile" value="+49 160 1234">
 
-  <label>Grußformel (Zeilenumbrüche mit ENTER)</label>
-  <textarea id="greeting">Viele Grüße
-Max</textarea>
+  <label>Grußzeile</label>
+  <textarea id="greeting">Viele Grüße\nMax</textarea>
 
   <label>Standort</label>
   <select id="location">
@@ -36,55 +57,59 @@ Max</textarea>
     <option value="AT">Österreich</option>
   </select>
 
-  <label>Profilfoto (100x100px, JPG/PNG)</label>
+  <label>Profilfoto (optional)</label>
   <input type="file" id="photo" accept="image/*">
 
-  <button class="button" onclick="generate()">Signatur generieren</button>
+  <button onclick="generateSignature()">Signatur generieren</button>
 
-  <div class="preview" id="output">👉 Deine Signatur erscheint hier …</div>
+  <iframe id="preview"></iframe>
 
   <script>
+    const tpl = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns="http://www.w3.org/TR/REC-html40" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:10pt;white-space:nowrap}.medium{font-size:9pt;color:#000;line-height:11pt}.small{font-size:8pt;color:#2f2f2f;line-height:9pt}a{text-decoration:none;color:#2f2f2f}</style></head><body>_GREETING_<table cellspacing="0" cellpadding="0" border="0"><tr><td><table border="0" cellspacing="0" cellpadding="0"><tr class="medium"><td rowspan="3" valign="top" style="height:100px;width:100px"><a href="mailto:_MAIL_"><img border="0" width="100" height="100" src="_PHOTO_" style="object-fit:cover"></a></td><td rowspan="3" width="10">&nbsp;</td><td valign="top"><b style="font-family: Arial; font-size: 10pt;">_NAME_</b><br><span style="font-family: Arial; font-size: 10pt;">_TITLE_</span><br><span style="color: #7B6AF4;font-family: Arial;font-size: 10pt;">#gerneperdu</span></td></tr><tr class="small"><td><a href="mailto:_MAIL_" style="font-family: Arial; font-size: 10pt;">_MAIL_</a> <span style="color:#7B6AF4">■</span> Mobil: <a href="tel:_MOBILE_">_MOBILE_</a><br>__LOCATION__</td></tr></table></td></tr></table></body></html>`;
+
     const locations = {
-      DE: `\n<a href="https://www.xenium.com/" style="font-family: Arial; font-size: 10pt;text-decoration:none;"><b>Xenium AG</b></a>\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<a href="https://www.google.com/maps/place/Sapporobogen+6-8,+80809+München/@48.1685467,11.5348437,17z" style="font-family: Arial; font-size: 10pt;text-decoration:none;">Sapporobogen 6-8</a>\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">80637 München</span>\n<br />\nFirmensitz: München\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Registergericht: Amtsgericht München\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Registernummer: HRB 127318\n<br />\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Vorstand: Dr. Wolfgang Reissenberger\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Vorsitzender des Aufsichtsrates: Tönnies-Hilmar von Donop\n<br />`,
-      AT: `\n<a href="https://www.xenium.at/" style="font-family: Arial; font-size: 10pt;text-decoration:none;"><b>Xenium Austria GmbH</b></a>\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<a href="https://www.google.com/maps/place/Siezenheimer+Str.+39a,+5020+Salzburg,+Austria/@47.8070552,13.0087846,17z" style="font-family: Arial; font-size: 10pt;text-decoration:none;">Siezenheimer Str. 39a</a>\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">A-5020 Salzburg</span>\n<br />\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Firmensitz: Salzburg\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Registergericht: Landesgericht Salzburg\n<span style="color:#7B6AF4;valign="middle;">■</span>\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Registernummer: FN 574628 t\n<br />\n<span style="font-family: Arial; font-size: 10pt;text-decoration:none;">Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig\n<br />`,
+      DE: `
+        <a href="https://www.xenium.com/"><b>Xenium AG</b></a> <span style="color:#7B6AF4">■</span>
+        <a href="https://maps.google.com/?q=Sapporobogen+6-8+M%C3%BCnchen">Sapporobogen 6-8</a> <span style="color:#7B6AF4">■</span> 80637 München<br>
+        Firmensitz: München <span style="color:#7B6AF4">■</span> Registergericht: Amtsgericht München <span style="color:#7B6AF4">■</span> HRB 127318<br>
+        Vorstand: Dr. Wolfgang Reissenberger <span style="color:#7B6AF4">■</span> Aufsichtsrat: Tönnies-Hilmar von Donop` ,
+      AT: `
+        <a href="https://www.xenium.at/"><b>Xenium Austria GmbH</b></a> <span style="color:#7B6AF4">■</span>
+        <a href="https://maps.google.com/?q=Siezenheimer+Str.+39a+5020+Salzburg">Siezenheimer Str. 39a</a> <span style="color:#7B6AF4">■</span> A-5020 Salzburg<br>
+        Firmensitz: Salzburg <span style="color:#7B6AF4">■</span> Registergericht: Landesgericht Salzburg <span style="color:#7B6AF4">■</span> FN 574628 t<br>
+        Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
     };
 
-    async function generate() {
+    function generateSignature() {
+      let html = tpl;
       const name = document.getElementById('name').value;
       const title = document.getElementById('title').value;
       const mail = document.getElementById('mail').value;
       const mobile = document.getElementById('mobile').value;
-      const greeting = document.getElementById('greeting').value.replace(/\n/g, '<br />');
+      const greeting = document.getElementById('greeting').value.replace(/\\n/g, '<br>');
       const locationKey = document.getElementById('location').value;
-      const locationHTML = locations[locationKey];
 
-      let photoData = '';
-      const file = document.getElementById('photo').files[0];
-      if (file) {
+      html = html.replace(/_NAME_/g, name)
+                 .replace(/_TITLE_/g, title)
+                 .replace(/_MAIL_/g, mail)
+                 .replace(/_MOBILE_/g, mobile)
+                 .replace(/_GREETING_/g, greeting)
+                 .replace(/__LOCATION__/g, locations[locationKey]);
+
+      const fileInput = document.getElementById('photo');
+      const iframe = document.getElementById('preview');
+
+      if (fileInput.files.length > 0) {
         const reader = new FileReader();
-        reader.onload = () => {
-          photoData = reader.result;
-          buildSignature();
+        reader.onload = function (e) {
+          const base64 = e.target.result;
+          html = html.replace(/_PHOTO_/g, base64);
+          iframe.srcdoc = html;
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(fileInput.files[0]);
       } else {
-        buildSignature(); // ohne Foto
-      }
-
-      function buildSignature() {
-        let tpl = `DEIN TEMPLATE HIER`; // <- hier deinen gesamten HTML-String einfügen
-        tpl = tpl.replaceAll('_NAME_', name)
-                 .replaceAll('_TITLE_', title)
-                 .replaceAll('_MAIL_', mail)
-                 .replaceAll('_MOBILE_', mobile)
-                 .replaceAll('_GREETING_', greeting)
-                 .replace('__LOCATION__', locationHTML);
-
-        if (photoData) {
-          tpl = tpl.replace('_FILES_/profilfoto.jpg', photoData);
-        }
-
-        document.getElementById('output').innerHTML = tpl;
+        html = html.replace(/_PHOTO_/g, 'https://via.placeholder.com/100');
+        iframe.srcdoc = html;
       }
     }
   </script>
