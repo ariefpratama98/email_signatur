@@ -2,116 +2,160 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Xenium Signatur Generator</title>
+  <title>Xenium Signaturgenerator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f8f9fa;
+      font-size: 10pt;
+      margin: 20px;
     }
     label {
       display: block;
-      margin: 10px 0 5px;
+      margin-top: 10px;
     }
-    input, select, textarea {
-      padding: 5px;
-      width: 100%;
-      max-width: 400px;
+    input[type="text"], input[type="email"], input[type="tel"] {
+      width: 300px;
     }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #7B6AF4;
-      color: white;
-      border: none;
-      cursor: pointer;
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
     }
-    iframe {
-      width: 100%;
-      height: 400px;
-      border: 1px solid #ccc;
-      margin-top: 20px;
+    #imageUpload {
+      display: none;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Xenium Signatur Generator</h1>
-  <label>Name</label>
-  <input type="text" id="name" value="Max Musterfrau">
 
-  <label>Titel</label>
-  <input type="text" id="title" value="Consultant">
+<h2>Xenium E-Mail-Signaturgenerator</h2>
 
-  <label>E-Mail</label>
-  <input type="email" id="mail" value="max.musterfrau@xenium.com">
+<form id="sigForm">
+  <label>Name:<br><input type="text" id="name" value="Max Musterfrau" required></label>
+  <label>Titel:<br><input type="text" id="title" value="Consultant"></label>
+  <label>E-Mail:<br><input type="email" id="mail" value="max.musterfrau@xenium.com" required></label>
+  <label>Mobilnummer:<br><input type="tel" id="mobile" value="+49 160 1234"></label>
+  <label>Grußformel:<br><input type="text" id="greeting" value="Viele Grüße\nMax"></label>
 
-  <label>Mobilnummer</label>
-  <input type="text" id="mobile" value="+49 160 1234">
+  <label>Standort:<br>
+    <select id="location">
+      <option value="DE">Deutschland</option>
+      <option value="AT">Österreich</option>
+    </select>
+  </label>
 
-  <label>Grußzeile</label>
-  <textarea id="greeting">Viele Grüße\nMax</textarea>
+  <div class="toggle-container">
+    <label for="imageToggle">Profilfoto (optional):</label>
+    <input type="checkbox" id="imageToggle">
+  </div>
+  <input type="file" id="imageUpload" accept="image/*">
 
-  <label>Standort</label>
-  <select id="location">
-    <option value="DE">Deutschland</option>
-    <option value="AT">Österreich</option>
-  </select>
+  <br><br>
+  <button type="submit">Signatur generieren</button>
+</form>
 
-  <label>Profilfoto (optional)</label>
-  <input type="file" id="photo" accept="image/*">
+<script>
+  const locations = {
+    DE: `
+      <a href="https://www.xenium.com/"><b style="text-decoration:none;color:#2f2f2f;">Xenium AG</b></a>
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      <a href="https://www.google.com/maps/place/Sapporobogen+6-8,+80809+München/@48.1685467,11.5348437,17z" style="text-decoration:none;color:#2f2f2f;">Sapporobogen 6-8</a>
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      80637 München<br />
+      Firmensitz: München
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      Registergericht: Amtsgericht München
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      Registernummer: HRB 127318<br />
+      Vorstand: Dr. Wolfgang Reissenberger
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      Vorsitzender des Aufsichtsrates: Tönnies-Hilmar von Donop<br />
+    `,
+    AT: `
+      <a href="https://www.xenium.at/"><b style="text-decoration:none;color:#2f2f2f;">Xenium Austria GmbH</b></a>
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      <a href="https://www.google.com/maps/place/Siezenheimer+Str.+39a,+5020+Salzburg,+Austria/@47.8070552,13.0087846,17z" style="text-decoration:none;color:#2f2f2f;">Siezenheimer Str. 39a</a>
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      A-5020 Salzburg<br />
+      Firmensitz: Salzburg
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      Registergericht: Landesgericht Salzburg
+      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+      Registernummer: FN 574628 t<br />
+      Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig<br />
+    `
+  };
 
-  <button onclick="generateSignature()">Signatur generieren</button>
+  document.getElementById("imageToggle").addEventListener("change", function () {
+    document.getElementById("imageUpload").style.display = this.checked ? "block" : "none";
+  });
 
-  <iframe id="preview"></iframe>
+  document.getElementById("sigForm").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-  <script>
-    const tpl = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns="http://www.w3.org/TR/REC-html40" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:10pt;white-space:nowrap}.medium{font-size:9pt;color:#000;line-height:11pt}.small{font-size:8pt;color:#2f2f2f;line-height:9pt}a{text-decoration:none;color:#2f2f2f}</style></head><body>_GREETING_<table cellspacing="0" cellpadding="0" border="0"><tr><td><table border="0" cellspacing="0" cellpadding="0"><tr class="medium"><td rowspan="3" valign="top" style="height:100px;width:100px"><a href="mailto:_MAIL_"><img border="0" width="100" height="100" src="_PHOTO_" style="object-fit:cover"></a></td><td rowspan="3" width="10">&nbsp;</td><td valign="top"><b style="font-family: Arial; font-size: 10pt;">_NAME_</b><br><span style="font-family: Arial; font-size: 10pt;">_TITLE_</span><br><span style="color: #7B6AF4;font-family: Arial;font-size: 10pt;">#gerneperdu</span></td></tr><tr class="small"><td><a href="mailto:_MAIL_" style="font-family: Arial; font-size: 10pt;">_MAIL_</a> <span style="color:#7B6AF4">■</span> Mobil: <a href="tel:_MOBILE_">_MOBILE_</a><br>__LOCATION__</td></tr></table></td></tr></table></body></html>`;
+    const name = document.getElementById("name").value;
+    const title = document.getElementById("title").value;
+    const mail = document.getElementById("mail").value;
+    const mobile = document.getElementById("mobile").value;
+    const greeting = document.getElementById("greeting").value.replace(/\n/g, "<br />");
+    const location = locations[document.getElementById("location").value];
+    const includeImage = document.getElementById("imageToggle").checked;
+    const fileInput = document.getElementById("imageUpload");
 
-    const locations = {
-      DE: `
-        <a href="https://www.xenium.com/"><b>Xenium AG</b></a> <span style="color:#7B6AF4">■</span>
-        <a href="https://maps.google.com/?q=Sapporobogen+6-8+M%C3%BCnchen">Sapporobogen 6-8</a> <span style="color:#7B6AF4">■</span> 80637 München<br>
-        Firmensitz: München <span style="color:#7B6AF4">■</span> Registergericht: Amtsgericht München <span style="color:#7B6AF4">■</span> HRB 127318<br>
-        Vorstand: Dr. Wolfgang Reissenberger <span style="color:#7B6AF4">■</span> Aufsichtsrat: Tönnies-Hilmar von Donop` ,
-      AT: `
-        <a href="https://www.xenium.at/"><b>Xenium Austria GmbH</b></a> <span style="color:#7B6AF4">■</span>
-        <a href="https://maps.google.com/?q=Siezenheimer+Str.+39a+5020+Salzburg">Siezenheimer Str. 39a</a> <span style="color:#7B6AF4">■</span> A-5020 Salzburg<br>
-        Firmensitz: Salzburg <span style="color:#7B6AF4">■</span> Registergericht: Landesgericht Salzburg <span style="color:#7B6AF4">■</span> FN 574628 t<br>
-        Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
-    };
+    let imageHTML = '';
+    if (includeImage && fileInput.files.length > 0) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        imageHTML = `<td rowspan="3" valign="top" style="height:100px;width:100px">
+            <img src="${reader.result}" width="100" height="100" style="border-radius:4px;">
+          </td>
+          <td rowspan="3" width="10">&nbsp;</td>`;
+        generateSignature();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else {
+      generateSignature();
+    }
 
     function generateSignature() {
-      let html = tpl;
-      const name = document.getElementById('name').value;
-      const title = document.getElementById('title').value;
-      const mail = document.getElementById('mail').value;
-      const mobile = document.getElementById('mobile').value;
-      const greeting = document.getElementById('greeting').value.replace(/\\n/g, '<br>');
-      const locationKey = document.getElementById('location').value;
-
-      html = html.replace(/_NAME_/g, name)
-                 .replace(/_TITLE_/g, title)
-                 .replace(/_MAIL_/g, mail)
-                 .replace(/_MOBILE_/g, mobile)
-                 .replace(/_GREETING_/g, greeting)
-                 .replace(/__LOCATION__/g, locations[locationKey]);
-
-      const fileInput = document.getElementById('photo');
-      const iframe = document.getElementById('preview');
-
-      if (fileInput.files.length > 0) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const base64 = e.target.result;
-          html = html.replace(/_PHOTO_/g, base64);
-          iframe.srcdoc = html;
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        html = html.replace(/_PHOTO_/g, 'https://via.placeholder.com/100');
-        iframe.srcdoc = html;
-      }
+      const template = `
+        ${greeting}
+        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+          <tr height="15"></tr>
+          <tr>
+            <td align="left">
+              <table border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                  <tr style="font-size:9pt; color:#000;">
+                    ${imageHTML}
+                    <td valign="top">
+                      <b>${name}</b><br>
+                      ${title}<br>
+                      <span style="color:#7B6AF4; font-size: 8pt;">#gerneperdu</span>
+                    </td>
+                  </tr>
+                  <tr style="font-size:8pt; color:#2f2f2f;">
+                    <td colspan="3">
+                      <a href="mailto:${mail}">${mail}</a>
+                      <span style="color:#7B6AF4;position:relative; top:-2px;">■</span>
+                      Mobil: <a href="tel:${mobile}">${mobile}</a><br>
+                      ${location}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </table>
+      `;
+      const newWindow = window.open('', '_blank');
+      newWindow.document.write(template);
+      newWindow.document.close();
     }
-  </script>
+  });
+</script>
+
 </body>
 </html>
