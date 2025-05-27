@@ -1,155 +1,126 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Xenium Signatur Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      font-size: 10pt;
-      padding: 2rem;
-      max-width: 700px;
-      margin: auto;
+      padding: 20px;
+      background-color: #f8f9fa;
     }
-    .medium { font-size: 9pt; color: #000; line-height: 11pt; }
-    .small { font-size: 8pt; color: #2f2f2f; line-height: 9pt; }
-    .spacer { color: #7B6AF4; position: relative; top: -2px; margin: 0 4px; }
-    input, select, button {
-      margin-top: 0.5rem;
-      padding: 0.3rem;
-      font-size: 10pt;
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input, select, textarea {
+      padding: 5px;
       width: 100%;
+      max-width: 400px;
     }
-    label { display: block; margin-top: 1rem; font-weight: bold; }
-    #output {
-      margin-top: 2rem;
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #7B6AF4;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
       border: 1px solid #ccc;
-      padding: 1rem;
-      white-space: nowrap;
-      overflow-x: auto;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <h1>Xenium Signatur Generator</h1>
 
-  <label>Name:</label>
-  <input type="text" id="name" value="Max Musterfrau" />
+  <label>Name</label>
+  <input type="text" id="name" value="Max Musterfrau">
 
-  <label>Position:</label>
-  <input type="text" id="title" value="Consultant" />
+  <label>Titel</label>
+  <input type="text" id="title" value="Consultant">
 
-  <label>E-Mail:</label>
-  <input type="text" id="mail" value="max.musterfrau@xenium.com" />
+  <label>E-Mail</label>
+  <input type="email" id="mail" value="max.musterfrau@xenium.com">
 
-  <label>Mobilnummer:</label>
-  <input type="text" id="mobile" value="+49 160 1234" />
+  <label>Mobilnummer</label>
+  <input type="text" id="mobile" value="+49 160 1234">
 
-  <label>Grußformel:</label>
-  <input type="text" id="greeting" value="Viele Grüße\nMax" />
+  <label>Grußzeile</label>
+  <textarea id="greeting">Viele Grüße\nMax</textarea>
 
-  <label>Standort:</label>
+  <label>Standort</label>
   <select id="location">
     <option value="DE">Deutschland</option>
     <option value="AT">Österreich</option>
   </select>
 
   <label>
-    <input type="checkbox" id="withImage" /> Profilfoto (optional)
+    <input type="checkbox" id="photoToggle"> Profilfoto anzeigen
   </label>
-  <input type="file" id="imageInput" style="display: none;" />
+  <input type="file" id="photo" accept="image/*" style="display: none;">
 
-  <button onclick="generateSignature()">Signatur erzeugen</button>
+  <button onclick="generateSignature()">Signatur generieren</button>
 
-  <div id="output"></div>
+  <iframe id="preview"></iframe>
 
   <script>
+    const tpl = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns="http://www.w3.org/TR/REC-html40" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:10pt;white-space:nowrap}.medium{font-size:9pt;color:#000;line-height:11pt}.small{font-size:8pt;color:#2f2f2f;line-height:9pt}a{text-decoration:none;color:#2f2f2f}</style></head><body>_GREETING_<table cellspacing="0" cellpadding="0" border="0"><tr><td><table border="0" cellspacing="0" cellpadding="0"><tr class="medium">_PHOTOHTML_<td valign="top"><b style="font-family: Arial; font-size: 10pt;">_NAME_</b><br><span style="font-family: Arial; font-size: 10pt;">_TITLE_</span><br><span style="color: #7B6AF4;font-family: Arial;font-size: 10pt;">#gerneperdu</span></td></tr><tr class="small"><td colspan="3"><a href="mailto:_MAIL_" style="font-family: Arial; font-size: 10pt;">_MAIL_</a> <span style="color:#7B6AF4">■</span> Mobil: <a href="tel:_MOBILE_">_MOBILE_</a><br>__LOCATION__</td></tr></table></td></tr></table></body></html>`;
+
     const locations = {
-      DE: `
-        <a href="https://www.xenium.com/"><b style="text-decoration:none;">Xenium AG</b></a>
-        <span class="spacer">■</span>
-        <a href="https://www.google.com/maps/place/Sapporobogen+6-8,+80809+München" style="text-decoration:none;">Sapporobogen 6-8</a>
-        <span class="spacer">■</span>
-        80637 München<br />
-        Firmensitz: München
-        <span class="spacer">■</span>
-        Registergericht: Amtsgericht München
-        <span class="spacer">■</span>
-        Registernummer: HRB 127318<br />
-        Vorstand: Dr. Wolfgang Reissenberger
-        <span class="spacer">■</span>
-        Vorsitzender des Aufsichtsrates: Tönnies-Hilmar von Donop<br />
-      `,
-      AT: `
-        <a href="https://www.xenium.at/"><b style="text-decoration:none;">Xenium Austria GmbH</b></a>
-        <span class="spacer">■</span>
-        <a href="https://www.google.com/maps/place/Siezenheimer+Str.+39a,+5020+Salzburg,+Austria" style="text-decoration:none;">Siezenheimer Str. 39a</a>
-        <span class="spacer">■</span>
-        A-5020 Salzburg<br />
-        Firmensitz: Salzburg
-        <span class="spacer">■</span>
-        Registergericht: Landesgericht Salzburg
-        <span class="spacer">■</span>
-        Registernummer: FN 574628 t<br />
-        Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig<br />
-      `
+      DE: `<a href="https://www.xenium.com/"><b>Xenium AG</b></a> <span style="color:#7B6AF4">■</span>
+        <a href="https://maps.google.com/?q=Sapporobogen+6-8+M%C3%BCnchen">Sapporobogen 6-8</a> <span style="color:#7B6AF4">■</span> 80637 München<br>
+        Firmensitz: München <span style="color:#7B6AF4">■</span> Registergericht: Amtsgericht München <span style="color:#7B6AF4">■</span> HRB 127318<br>
+        Vorstand: Dr. Wolfgang Reissenberger <span style="color:#7B6AF4">■</span> Aufsichtsrat: Tönnies-Hilmar von Donop`,
+
+      AT: `<a href="https://www.xenium.at/"><b>Xenium Austria GmbH</b></a> <span style="color:#7B6AF4">■</span>
+        <a href="https://maps.google.com/?q=Siezenheimer+Str.+39a+5020+Salzburg">Siezenheimer Str. 39a</a> <span style="color:#7B6AF4">■</span> A-5020 Salzburg<br>
+        Firmensitz: Salzburg <span style="color:#7B6AF4">■</span> Registergericht: Landesgericht Salzburg <span style="color:#7B6AF4">■</span> FN 574628 t<br>
+        Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
     };
 
-    document.getElementById('withImage').addEventListener('change', function () {
-      document.getElementById('imageInput').style.display = this.checked ? 'block' : 'none';
+    document.getElementById('photoToggle').addEventListener('change', () => {
+      const photoInput = document.getElementById('photo');
+      photoInput.style.display = document.getElementById('photoToggle').checked ? 'block' : 'none';
     });
 
     function generateSignature() {
+      let html = tpl;
       const name = document.getElementById('name').value;
       const title = document.getElementById('title').value;
       const mail = document.getElementById('mail').value;
       const mobile = document.getElementById('mobile').value;
-      const greeting = document.getElementById('greeting').value.replace(/\\n/g, '<br />');
-      const location = locations[document.getElementById('location').value];
-      const showImage = document.getElementById('withImage').checked;
+      const greeting = document.getElementById('greeting').value.replace(/\\n/g, '<br>');
+      const locationKey = document.getElementById('location').value;
 
-      let photoCell = '';
-      if (showImage) {
-        photoCell = `
-          <td rowspan="3" valign="top" style="height:100px;width:100px">
-            <a href="mailto:${mail}">
-              <img border="0" width="100" height="100" src="_FILES_/profilfoto.jpg" alt="Profilfoto">
-            </a>
-          </td>
-          <td rowspan="3" width="10">&nbsp;</td>
-        `;
+      html = html.replace(/_NAME_/g, name)
+                 .replace(/_TITLE_/g, title)
+                 .replace(/_MAIL_/g, mail)
+                 .replace(/_MOBILE_/g, mobile)
+                 .replace(/_GREETING_/g, greeting)
+                 .replace(/__LOCATION__/g, locations[locationKey]);
+
+      const withPhoto = document.getElementById('photoToggle').checked;
+      const fileInput = document.getElementById('photo');
+      const iframe = document.getElementById('preview');
+
+      if (withPhoto && fileInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const base64 = e.target.result;
+          const imgHTML = `<td rowspan="3" valign="top" style="height:100px;width:100px"><a href="mailto:${mail}"><img border="0" width="100" height="100" src="${base64}" style="object-fit:cover"></a></td><td rowspan="3" width="10">&nbsp;</td>`;
+          html = html.replace(/_PHOTOHTML_/g, imgHTML);
+          iframe.srcdoc = html;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        // kein Bild → keine <td>
+        html = html.replace(/_PHOTOHTML_/g, '');
+        iframe.srcdoc = html;
       }
-
-      const html = `
-        ${greeting}<br /><br />
-        <table width="100%" cellspacing="0" cellpadding="0" border="0">
-          <tr>
-            <td align="left">
-              <table border="0" cellspacing="0" cellpadding="0">
-                <tr class="medium">
-                  ${photoCell}
-                  <td valign="top">
-                    <b>${name}</b><br />
-                    ${title}<br />
-                    <span style="color:#7B6AF4; font-size:8pt;">#gerneperdu</span>
-                  </td>
-                </tr>
-                <tr class="small">
-                  <td colspan="3">
-                    <a href="mailto:${mail}">${mail}</a>
-                    <span class="spacer">■</span>
-                    Mobil: <a href="tel:${mobile}">${mobile}</a><br />
-                    ${location}
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      `;
-
-      document.getElementById('output').innerHTML = html;
     }
   </script>
 </body>
