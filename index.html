@@ -164,7 +164,7 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
         const reader = new FileReader();
         reader.onload = function (e) {
           const base64 = e.target.result;
-          const imgHTML = `<td rowspan="3" valign="top" style="height:100px;width:100px"><a href="mailto:${mail}"><img border="0" width="100" height="100" src="${base64}" style="object-fit:cover"></a></td><td rowspan="3" width="10">&nbsp;</td>`;
+          const imgHTML = `<td rowspan="3" valign="middle" style="height:100px;width:100px"><a href="mailto:${mail}"><img border="0" width="100" height="100" src="${base64}" style="object-fit:cover"></a></td><td rowspan="3" width="10">&nbsp;</td>`;
           html = html.replace(/_PHOTOHTML_/g, imgHTML);
           iframe.srcdoc = html;
         };
