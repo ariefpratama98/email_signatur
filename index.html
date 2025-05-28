@@ -32,6 +32,12 @@
       border: 1px solid #ccc;
       margin-top: 20px;
     }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -58,7 +64,7 @@
     <option value="AT">Österreich</option>
   </select>
 
-  <label>
+  <label class="checkbox-label">
     <input type="checkbox" id="photoToggle"> Profilfoto anzeigen
   </label>
   <input type="file" id="photo" accept="image/*" style="display: none;">
@@ -68,23 +74,22 @@
   <iframe id="preview"></iframe>
 
   <script>
-    const tpl = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns="http://www.w3.org/TR/REC-html40" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:10pt;white-space:nowrap}.medium{font-size:9pt;color:#000;line-height:11pt}.small{font-size:8pt;color:#2f2f2f;line-height:9pt}a{text-decoration:none;color:#2f2f2f}</style></head><body>_GREETING_<table cellspacing="0" cellpadding="0" border="0"><tr><td><table border="0" cellspacing="0" cellpadding="0"><tr class="medium">_PHOTOHTML_<td valign="top"><b style="font-family: Arial; font-size: 10pt;">_NAME_</b><br><span style="font-family: Arial; font-size: 10pt;">_TITLE_</span><br><span style="color: #7B6AF4;font-family: Arial;font-size: 10pt;">#gerneperdu</span></td></tr><tr class="small"><td colspan="3"><a href="mailto:_MAIL_" style="font-family: Arial; font-size: 10pt;">_MAIL_</a> <span style="color:#7B6AF4">■</span> Mobil: <a href="tel:_MOBILE_">_MOBILE_</a><br>__LOCATION__</td></tr></table></td></tr></table></body></html>`;
+    const tpl = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns="http://www.w3.org/TR/REC-html40" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:10pt;white-space:nowrap}.medium{font-size:8pt;color:#000;line-height:11pt}.small{font-size:8pt;color:#000;line-height:9pt}a{text-decoration:none;color:#2f2f2f}</style></head><body>_GREETING_<table cellspacing="0" cellpadding="0" border="0"><tr><td><table border="0" cellspacing="0" cellpadding="0"><tr class="medium">_PHOTOHTML_<td valign="top"><b style="font-family: Arial; font-size: 10pt;">_NAME_</b><br><span style="font-family: Arial; font-size: 10pt;">_TITLE_</span><br><span style="color: #7B6AF4; font-size: 10pt;">#gerneperdu</span></td></tr><tr class="small"><td colspan="3" style="font-family: Arial; font-size: 8pt;"><a href="mailto:_MAIL_" style="font-family: Arial; font-size: 8pt;">_MAIL_</a> <span style="color:#7B6AF4">■</span> Mobil: <a href="tel:_MOBILE_" style="font-family: Arial; font-size: 8pt;">_MOBILE_</a><br>__LOCATION__</td></tr></table></td></tr></table></body></html>`;
 
     const locations = {
-      DE: `<a href="https://www.xenium.com/"><b>Xenium AG</b></a> <span style="color:#7B6AF4">■</span>
+      DE: `<span style="font-family: Arial; font-size: 8pt;"><a href="https://www.xenium.com/"><b>Xenium AG</b></a> <span style="color:#7B6AF4">■</span>
         <a href="https://maps.google.com/?q=Sapporobogen+6-8+M%C3%BCnchen">Sapporobogen 6-8</a> <span style="color:#7B6AF4">■</span> 80637 München<br>
         Firmensitz: München <span style="color:#7B6AF4">■</span> Registergericht: Amtsgericht München <span style="color:#7B6AF4">■</span> HRB 127318<br>
-        Vorstand: Dr. Wolfgang Reissenberger <span style="color:#7B6AF4">■</span> Aufsichtsrat: Tönnies-Hilmar von Donop`,
+        Vorstand: Dr. Wolfgang Reissenberger <span style="color:#7B6AF4">■</span> Aufsichtsrat: Tönnies-Hilmar von Donop</span>`,
 
-      AT: `<a href="https://www.xenium.at/"><b>Xenium Austria GmbH</b></a> <span style="color:#7B6AF4">■</span>
+      AT: `<span style="font-family: Arial; font-size: 8pt;"><a href="https://www.xenium.at/"><b>Xenium Austria GmbH</b></a> <span style="color:#7B6AF4">■</span>
         <a href="https://maps.google.com/?q=Siezenheimer+Str.+39a+5020+Salzburg">Siezenheimer Str. 39a</a> <span style="color:#7B6AF4">■</span> A-5020 Salzburg<br>
         Firmensitz: Salzburg <span style="color:#7B6AF4">■</span> Registergericht: Landesgericht Salzburg <span style="color:#7B6AF4">■</span> FN 574628 t<br>
-        Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
+        Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig</span>`
     };
 
     document.getElementById('photoToggle').addEventListener('change', () => {
-      const photoInput = document.getElementById('photo');
-      photoInput.style.display = document.getElementById('photoToggle').checked ? 'block' : 'none';
+      document.getElementById('photo').style.display = document.getElementById('photoToggle').checked ? 'block' : 'none';
     });
 
     function generateSignature() {
@@ -117,8 +122,9 @@
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else {
-        // kein Bild → keine <td>
-        html = html.replace(/_PHOTOHTML_/g, '');
+        // Leerzelle für Outlook, um den Abstand zu erhalten
+        const spacerHTML = `<td rowspan="3" valign="top" style="height:100px;width:100px"></td><td rowspan="3" width="10">&nbsp;</td>`;
+        html = html.replace(/_PHOTOHTML_/g, spacerHTML);
         iframe.srcdoc = html;
       }
     }
