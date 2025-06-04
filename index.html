@@ -179,7 +179,7 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else {
-        spacerHTML = '<td colspan="3" style="height: 16px; font-size: 0; line-height: 0;">&nbsp;</td>';
+        spacerHTML = '<td colspan="3" style="height: 10px; font-size: 0; line-height: 0;">&nbsp;</td>';
         html = html.replace(/_PHOTOHTML_/g, '')
                    .replace(/_SPACERHTML_/g, spacerHTML);
         iframe.srcdoc = html;
