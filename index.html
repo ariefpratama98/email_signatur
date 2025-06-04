@@ -109,6 +109,7 @@
             <span style="color: #7B6AF4; font-family: Arial; font-size: 10pt;">#gerneperdu</span>
           </td>
         </tr>
+        <tr>_SPACERHTML_</tr>
         <tr style="height:4px;"><td colspan="3"></td></tr>
         <tr class="small">
           <td colspan="3">
@@ -162,20 +163,25 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
       const fileInput = document.getElementById('photo');
       const iframe = document.getElementById('preview');
 
+      let spacerHTML = '';
+
       if (withPhoto && fileInput.files.length > 0) {
         const reader = new FileReader();
         reader.onload = function (e) {
           const base64 = e.target.result;
           const imgHTML = `<td rowspan="3" valign="middle" style="height:110px;width:110px">
-<a href="mailto:${mail}"><img border="0" src="${base64}" style="width: 110px; height: 110px; object-fit: cover; object-position: center; display: block; border-radius: 0;">
-</a></td>
+<a href="mailto:${mail}"><img border="0" src="${base64}" style="width: 110px; height: 110px; object-fit: cover; object-position: center; display: block; border-radius: 0;"></a></td>
 <td rowspan="3" width="10">&nbsp;</td>`;
-          html = html.replace(/_PHOTOHTML_/g, imgHTML);
+          spacerHTML = '<td colspan="3" style="height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>';
+          html = html.replace(/_PHOTOHTML_/g, imgHTML)
+                     .replace(/_SPACERHTML_/g, spacerHTML);
           iframe.srcdoc = html;
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else {
-        html = html.replace(/_PHOTOHTML_/g, '');
+        spacerHTML = '<td colspan="3" style="height: 16px; font-size: 0; line-height: 0;">&nbsp;</td>';
+        html = html.replace(/_PHOTOHTML_/g, '')
+                   .replace(/_SPACERHTML_/g, spacerHTML);
         iframe.srcdoc = html;
       }
     }
