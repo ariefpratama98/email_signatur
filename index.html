@@ -172,8 +172,8 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
         const reader = new FileReader();
         reader.onload = function (e) {
           const base64 = e.target.result;
-          const imgHTML = `<td rowspan="3" valign="middle" style="height:110px;width:110px">
-<a href="mailto:${mail}"><img border="0" src="${base64}" style="width: 110px; height: 110px; object-fit: cover; object-position: center; display: block; border-radius: 0;"></a></td>
+          const imgHTML = `<td rowspan="3" valign="middle" style="height:100px;width:100px">
+<a href="mailto:${mail}"><img border="0" src="${base64}" style="width: 100px; height: 100px; object-fit: cover; object-position: center; display: block; border-radius: 0;"></a></td>
 <td rowspan="3" width="10">&nbsp;</td>`;
           spacerHTML = '<td colspan="3" style="height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>';
           html = html.replace(/_PHOTOHTML_/g, imgHTML)
