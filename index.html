@@ -40,6 +40,9 @@
   <label>Name</label>
   <input type="text" id="name" value="Max Musterfrau">
 
+  <label>Pronomen (optional)</label>
+  <input type="text" id="pronoun" placeholder="z. B. er / ihm">
+
   <label>Titel</label>
   <input type="text" id="title" value="Consultant">
 
@@ -104,7 +107,7 @@
       <table border="0" cellspacing="0" cellpadding="0">
         <tr class="medium">
           <td>
-            <b style="font-family: Arial; font-size: 10pt;">_NAME_</b><br>
+            <b style="font-family: Arial; font-size: 10pt;">_NAME_</b><span style="font-family: Arial; font-size: 9pt; font-weight: normal;"> _PRONOUN_</span><br>
             <span style="font-family: Arial; font-size: 10pt;">_TITLE_</span><br>
             <span style="color: #7B6AF4; font-family: Arial; font-size: 10pt;">#gerneperdu</span>
           </td>
@@ -120,9 +123,6 @@
           </td>
         </tr>
       </table>
-    </td>
-  </tr>
-</table>
     </td>
   </tr>
 </table>
@@ -148,14 +148,16 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
 
     function generateSignature() {
       let html = tpl;
-      const name = document.getElementById('name').value;
-      const title = document.getElementById('title').value;
-      const mail = document.getElementById('mail').value;
-      const mobile = document.getElementById('mobile').value;
+      const name = document.getElementById('name').value.trim();
+      const pronoun = document.getElementById('pronoun').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const mail = document.getElementById('mail').value.trim();
+      const mobile = document.getElementById('mobile').value.trim();
       const greeting = document.getElementById('greeting').value.replace(/\\n/g, '<br>');
       const locationKey = document.getElementById('location').value;
 
       html = html.replace(/_NAME_/g, name)
+                 .replace(/_PRONOUN_/g, pronoun ? `(${pronoun})` : '')
                  .replace(/_TITLE_/g, title)
                  .replace(/_MAIL_/g, mail)
                  .replace(/_MOBILE_/g, mobile)
@@ -166,7 +168,7 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
       const fileInput = document.getElementById('photo');
       const iframe = document.getElementById('preview');
 
-      let spacerHTML = '';
+      let spacerHTML = '<td colspan="3" style="height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>';
 
       if (withPhoto && fileInput.files.length > 0) {
         const reader = new FileReader();
@@ -175,14 +177,12 @@ Geschäftsführer: Dr. Thomas Aschauer, Cornelia Utschig`
           const imgHTML = `<td rowspan="3" valign="middle" style="height:105px;width:105px">
 <a href="mailto:${mail}"><img border="0" src="${base64}" style="width: 105px; height: 105px; object-fit: cover; object-position: center; display: block; border-radius: 0;"></a></td>
 <td rowspan="3" width="10">&nbsp;</td>`;
-          spacerHTML = '<td colspan="3" style="height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>';
           html = html.replace(/_PHOTOHTML_/g, imgHTML)
                      .replace(/_SPACERHTML_/g, spacerHTML);
           iframe.srcdoc = html;
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else {
-        spacerHTML = '<td colspan="3" style="height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>';
         html = html.replace(/_PHOTOHTML_/g, '')
                    .replace(/_SPACERHTML_/g, spacerHTML);
         iframe.srcdoc = html;
